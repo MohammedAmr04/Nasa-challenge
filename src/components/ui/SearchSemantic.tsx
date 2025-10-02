@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { AutoComplete, Input } from 'antd'
-import { useNavigate } from 'react-router' // لو شغال ب React Router
+import { useNavigate } from 'react-router' // ✅ خليها react-router-dom
 import './styles.css'
 
 interface IData {
@@ -20,7 +20,7 @@ const data: IData[] = [
     title: 'Database',
     description:
       'A database is an organized collection of inter-related data that models some aspect of the real-world...',
-    category: 'Concepts/Data Storage',
+    category: 'Concepts / Data Storage',
     link: '/database',
   },
   {
@@ -42,7 +42,10 @@ function highlight(text: string, query: string): React.ReactNode {
   const regex = new RegExp(`(${query})`, 'gi')
   return text.split(regex).map((part, i) =>
     regex.test(part) ? (
-      <span key={i} style={{ backgroundColor: 'yellow' }}>
+      <span
+        key={i}
+        className="px-0.5 rounded bg-purple-600/40 text-purple-200 font-medium"
+      >
         {part}
       </span>
     ) : (
@@ -66,12 +69,14 @@ function SearchSemantic() {
       .map((item) => ({
         value: item.link,
         label: (
-          <div className="p-1.5">
-            <div className="font-bold">{highlight(item.title, value)}</div>
-            <div style={{ fontSize: '10px', color: '#555' }}>
+          <div className="p-2 rounded-lg bg-[#2a2a36] hover:bg-[#3a3a4a] transition">
+            <div className="font-semibold text-gray-100 text-sm">
+              {highlight(item.title, value)}
+            </div>
+            <div className="text-xs text-gray-400">
               {highlight(item.description, value)}
             </div>
-            <div style={{ fontSize: '8px', color: '#999' }}>
+            <div className="text-[10px] text-gray-500 italic mt-0.5">
               {item.category}
             </div>
           </div>
@@ -82,24 +87,22 @@ function SearchSemantic() {
   }
 
   const handleSelect = (value: string) => {
-    // value هنا هو link اللي حطيته فوق
-    navigate(value) // لو جوه المشروع ب React Router
-    // أو window.open(value, "_blank") لو عايز لينك خارجي
+    navigate(value) // ✅ React Router navigation
   }
 
   return (
-    <div
-      className="search-semantic"
-      style={{ maxWidth: 400, margin: '50px auto' }}
-    >
+    <div className="search-semantic w-full max-w-md">
       <AutoComplete
         style={{ width: '100%' }}
         options={options}
         onSearch={handleSearch}
         onSelect={handleSelect}
-        placeholder="Search..."
+        // dropdownClassName="dark-autocomplete"
       >
-        <Input.Search className="duration-300" />
+        <Input.Search
+          className="rounded-xl border border-gray-600 bg-[#1e1e2e] text-gray-200 placeholder-gray-400 focus:border-purple-500 focus:ring-1 focus:ring-purple-500"
+          placeholder="Search..."
+        />
       </AutoComplete>
     </div>
   )
