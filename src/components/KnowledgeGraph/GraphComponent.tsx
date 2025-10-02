@@ -1,52 +1,75 @@
-import ForceGraph2D from 'react-force-graph-2d'
-
-const data = {
-  nodes: [
-    { id: 'Note 1', group: 1 },
-    { id: 'Note 2', group: 2 },
-    { id: 'Note 3', group: 1 },
-    { id: 'Note 4', group: 3 },
-    { id: 'Note 5', group: 2 },
-  ],
-  links: [
-    { source: 'Note 1', target: 'Note 2' },
-    { source: 'Note 2', target: 'Note 3' },
-    { source: 'Note 2', target: 'Note 4' },
-    { source: 'Note 4', target: 'Note 5' },
-  ],
-}
+import { useEffect, useRef, useState } from 'react'
+import { DataSet, Network } from 'vis-network/standalone'
+import type { Node, Edge } from 'vis-network'
 
 function GraphComponent() {
+  const containerRef = useRef<HTMLDivElement>(null)
+  const [_, setSelectedNodeId] = useState<number | null>(null)
+
+  useEffect(() => {
+    if (!containerRef.current) return
+
+    const containerWidth = containerRef.current.offsetWidth
+    const containerHeight = containerRef.current.offsetHeight
+    const minDim = Math.min(containerWidth, containerHeight)
+
+    const baseSize = minDim * 0.03
+    const selectedSize = minDim * 0.06
+
+    const nodes = new DataSet<Node>([
+      { id: 1, label: 'Note 1', color: '#6abe39', size: baseSize },
+      { id: 2, label: 'Note 2', color: '#3887e7', size: baseSize },
+      { id: 3, label: 'Note 3', color: '#e63946', size: baseSize },
+    ])
+
+    const edges = new DataSet<Edge>([
+      { from: 1, to: 2 },
+      { from: 2, to: 3 },
+    ])
+
+    const network = new Network(
+      containerRef.current!,
+      { nodes, edges },
+      {
+        nodes: {
+          shape: 'dot',
+          font: { color: '#222' },
+        },
+        edges: {
+          color: 'black',
+        },
+        physics: {
+          stabilization: false,
+        },
+      }
+    )
+
+    // 🖱️ Click event
+    network.on('click', (params) => {
+      if (params.nodes.length > 0) {
+        const nodeId = params.nodes[0] as number
+        setSelectedNodeId(nodeId)
+
+        nodes.forEach((n) => {
+          nodes.update({ id: n.id, size: baseSize })
+        })
+
+        nodes.update({ id: nodeId, size: selectedSize })
+      } else {
+        setSelectedNodeId(null)
+        nodes.forEach((n) => {
+          nodes.update({ id: n.id, size: baseSize })
+        })
+      }
+    })
+  }, [])
+
   return (
-    <div className="w-full h-screen bg-black">
-      <ForceGraph2D
-        graphData={data}
-        width={800}
-        height={600}
-        backgroundColor="#0f0f0f"
-        linkColor={() => 'rgba(200,200,200,0.4)'}
-        nodeRelSize={4}
-        nodeLabel={(node) => node.id} // Tooltip عند hover
-        nodeCanvasObject={(node, ctx, globalScale) => {
-          const colors = ['#6abe39', '#3887e7', '#e63946']
-          const color = colors[(node.group || 0) % colors.length]
-
-          ctx.beginPath()
-          ctx.arc(node.x!, node.y!, 6, 0, 2 * Math.PI, false)
-          ctx.fillStyle = color
-          ctx.fill()
-
-          const label = node.id as string
-          const fontSize = 10 / globalScale
-          ctx.font = `${fontSize}px Sans-Serif`
-          ctx.textAlign = 'center'
-          ctx.textBaseline = 'bottom'
-
-          ctx.fillStyle = 'white'
-          ctx.fillText(label, node.x!, node.y! - 8)
-        }}
-      />
-    </div>
+    <div
+      ref={containerRef}
+      style={{ width: '100%', height: '100%' }}
+      className="bg-gray-200"
+    />
   )
 }
 
